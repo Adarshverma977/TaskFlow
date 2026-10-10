@@ -1,5 +1,37 @@
-function TaskCard({ task, onEdit, onDelete, onStatusChange }) {
+
+function formatDueDate(date) {
+  if (!date) return "";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Invalid date";
+  }
+
+  return parsedDate.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+
+function TaskCard({ task, onEdit, onDelete, onStatusChange, isUpdating = false, isDeleting = false, isDisabled = false}) {
+
   const { title, description, priority, status, dueDate } = task;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const dueDateObject = dueDate ? new Date(dueDate) : null;
+
+  const isOverdue =
+    dueDateObject &&
+    !Number.isNaN(dueDateObject.getTime()) &&
+    dueDateObject < today &&
+    status !== "completed";
+
 
   const statusLabels = {
     pending: "Pending",
@@ -34,10 +66,12 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange }) {
           </span>
 
           {dueDate && (
-            <span className="due-date">
-              Due {dueDate}
+            <span className={`due-date ${isOverdue ? "overdue" : ""}`}>
+              {isOverdue ? "Overdue · " : "Due "}
+              {formatDueDate(dueDate)}
             </span>
           )}
+
         </div>
       </div>
 
@@ -47,6 +81,7 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange }) {
 
           <select
             value={status}
+            disabled={isDisabled || isUpdating}
             onChange={(event) =>
               onStatusChange(task.id, event.target.value)
             }
@@ -62,20 +97,22 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange }) {
           type="button"
           className="icon-button"
           onClick={() => onEdit(task)}
+          disabled={isDisabled || isUpdating || isDeleting}
           aria-label={`Edit ${title}`}
           title="Edit task"
         >
-          ✎
+          {isUpdating ? "Saving..." : "✎"}
         </button>
 
         <button
           type="button"
           className="icon-button delete-button"
           onClick={() => onDelete(task.id)}
+          disabled={isDisabled || isUpdating || isDeleting}
           aria-label={`Delete ${title}`}
           title="Delete task"
         >
-          ×
+          {isDeleting ? "..." : "×"}
         </button>
       </div>
     </article>

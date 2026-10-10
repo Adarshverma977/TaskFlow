@@ -72,12 +72,16 @@ function TaskForm({ task, onSubmit, onCancel, isSubmitting = false }) {
       return;
     }
 
+
     onSubmit({
       ...formData,
       title: formData.title.trim(),
       description: formData.description.trim(),
-      dueDate: formData.dueDate || null,
+      dueDate: formData.dueDate
+        ? new Date(`${formData.dueDate}T00:00:00.000Z`).toISOString()
+        : null,
     });
+
   }
 
   return (

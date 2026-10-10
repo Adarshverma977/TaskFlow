@@ -1,30 +1,68 @@
 const API_URL = "http://localhost:5000/api/tasks";
 // Get all tasks
-export async function getTasks() {
-  const response = await fetch(API_URL);
+
+export async function getTasks({
+  page = 1,
+  limit = 10,
+  status,
+  priority,
+  sortBy = "createdAt",
+  order = "desc",
+  search,
+  dueFrom,
+  dueTo,
+} = {}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    sortBy,
+    order,
+  });
+
+  if (status && status !== "all") {
+    params.set("status", status);
+  }
+
+  if (priority) {
+    params.set("priority", priority);
+  }
+
+  if (search?.trim()) {
+    params.set("search", search.trim());
+  }
+
+  if (dueFrom) {
+    params.set("dueFrom", dueFrom);
+  }
+
+  if (dueTo) {
+    params.set("dueTo", dueTo);
+  }
+
+  const response = await fetch(`${API_URL}?${params.toString()}`);
 
   if (!response.ok) {
-    throw new Error("Failed to fetch tasks.");
+    throw new Error(await getErrorMessage(response, "Failed to fetch tasks."));
   }
 
   const result = await response.json();
 
-  console.log("Backend response:", result);
+  const tasks = Array.isArray(result.data) ? result.data : [];
 
-  // Extract tasks from the actual backend response
-  const tasks = Array.isArray(result)
-    ? result
-    : Array.isArray(result.data)
-      ? result.data
-      : Array.isArray(result.tasks)
-        ? result.tasks
-        : [];
-
-  return tasks.map((task) => ({
-    ...task,
-    id: task._id ?? task.id,
-  }));
+  return {
+    tasks: tasks.map((task) => ({
+      ...task,
+      id: task._id ?? task.id,
+    })),
+    pagination: result.pagination ?? {
+      page,
+      limit,
+      totalTasks: tasks.length,
+      totalPages: 1,
+    },
+  };
 }
+
 // Create a task
 export async function createTask(taskData) {
   const response = await fetch(API_URL, {
@@ -44,6 +82,7 @@ export async function createTask(taskData) {
   };
 }
 // Update an existing task
+
 export async function updateTask(id, taskData) {
   const response = await fetch(`${API_URL}/${id}`, {
     method: "PATCH",
@@ -52,15 +91,22 @@ export async function updateTask(id, taskData) {
     },
     body: JSON.stringify(taskData),
   });
+
   if (!response.ok) {
     throw new Error(await getErrorMessage(response, "Failed to update task."));
   }
-  const task = await response.json();
+
+  const result = await response.json();
+
+  // Support both direct task and wrapped API responses
+  const task = result.data ?? result.task ?? result;
+
   return {
     ...task,
     id: task._id ?? task.id,
   };
 }
+
 // Delete a task
 export async function deleteTask(id) {
   const response = await fetch(`${API_URL}/${id}`, {

@@ -1,4 +1,12 @@
-function Header({ title, onAddTask, searchQuery, onSearchChange }) {
+
+function Header({
+  title,
+  onAddTask,
+  searchQuery,
+  onSearchChange,
+  sortBy,
+  onSortChange,
+}) {
   return (
     <header className="dashboard-header">
       <div className="header-heading">
@@ -22,6 +30,20 @@ function Header({ title, onAddTask, searchQuery, onSearchChange }) {
           />
 
           <kbd>⌕</kbd>
+        </label>
+
+        <label className="sort-control">
+          <span className="visually-hidden">Sort tasks</span>
+
+          <select
+            aria-label="Sort tasks"
+            value={sortBy}
+            onChange={(event) => onSortChange(event.target.value)}
+          >
+            <option value="newest">Newest first</option>
+            <option value="dueDate">Due date</option>
+            <option value="priority">Priority: High to Low</option>
+          </select>
         </label>
 
         <button

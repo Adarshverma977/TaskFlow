@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Header from "../components/Header";
 import StatsCards from "../components/StatsCards";
@@ -6,23 +6,65 @@ import TaskList from "../components/TaskList";
 import TaskForm from "../components/TaskForm";
 import useTasks from "../hooks/useTasks";
 
-function Dashboard({ filter }) {
-  const {
-    tasks,
-    isLoading,
-    isSubmitting,
-    error,
-    addTask,
-    editTask,
-    removeTask,
-    changeTaskStatus,
-  } = useTasks();
+function getDashboardFilters() {
+  const params = new URLSearchParams(window.location.search);
 
-  const [searchQuery, setSearchQuery] = useState("");
+  return {
+    search: params.get("search") || "",
+    sortBy: params.get("sortBy") || "newest",
+  };
+}
+
+function Dashboard({ filter }) {
+  // 1. Search and sorting states
+  const [searchQuery, setSearchQuery] = useState(
+    () => getDashboardFilters().search
+  );
+
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  const [sortBy, setSortBy] = useState(
+    () => getDashboardFilters().sortBy
+  );
+
+  // 2. Other UI states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [formError, setFormError] = useState("");
+  const [updatingTaskId, setUpdatingTaskId] = useState(null);
+  const [deletingTaskId, setDeletingTaskId] = useState(null);
 
+  // 3. Debounce search input
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+
+    return () => clearTimeout(timerId);
+  }, [searchQuery]);
+
+  // 4. Connect Dashboard with the custom hook
+  const {
+    tasks,
+    pagination,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    isSubmitting,
+    error,
+    addTask,
+    fetchTasks,
+    loadMoreTasks,
+    editTask,
+    removeTask,
+    changeTaskStatus,
+  } = useTasks({
+    status: filter,
+    search: debouncedSearch,
+    sortBy,
+  });
+
+  // 5. Page title
   const pageTitles = {
     all: "My Tasks",
     pending: "Pending Tasks",
@@ -32,24 +74,28 @@ function Dashboard({ filter }) {
 
   const pageTitle = pageTitles[filter] || "My Tasks";
 
+  // 6. Open create form
   function openCreateForm() {
     setEditingTask(null);
     setFormError("");
     setIsFormOpen(true);
   }
 
+  // 7. Open edit form
   function openEditForm(task) {
     setEditingTask(task);
     setFormError("");
     setIsFormOpen(true);
   }
 
+  // 8. Close form
   function closeForm() {
     setIsFormOpen(false);
     setEditingTask(null);
     setFormError("");
   }
 
+  // 9. Create or update task
   async function handleFormSubmit(formData) {
     setFormError("");
 
@@ -66,6 +112,7 @@ function Dashboard({ filter }) {
     }
   }
 
+  // 10. Delete task
   async function handleDeleteTask(id) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this task?"
@@ -73,21 +120,31 @@ function Dashboard({ filter }) {
 
     if (!confirmed) return;
 
+    setDeletingTaskId(id);
+
     try {
       await removeTask(id);
     } catch {
       // The hook stores the API error for display.
+    } finally {
+      setDeletingTaskId(null);
     }
   }
 
+  // 11. Change task status
   async function handleStatusChange(id, status) {
+    setUpdatingTaskId(id);
+
     try {
       await changeTaskStatus(id, status);
     } catch {
       // The hook stores the API error for display.
+    } finally {
+      setUpdatingTaskId(null);
     }
   }
 
+  // 12. Dashboard UI
   return (
     <section className="dashboard">
       <Header
@@ -95,17 +152,21 @@ function Dashboard({ filter }) {
         onAddTask={openCreateForm}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
       />
 
       <div className="dashboard-content">
         {error && (
           <div className="error-banner" role="alert">
             <span>{error}</span>
+
             <button
               type="button"
-              onClick={() => window.location.reload()}
+              onClick={fetchTasks}
+              disabled={isLoading}
             >
-              Retry
+              {isLoading ? "Retrying..." : "Retry"}
             </button>
           </div>
         )}
@@ -117,15 +178,39 @@ function Dashboard({ filter }) {
             Loading your tasks...
           </div>
         ) : (
-          <TaskList
-            tasks={tasks}
-            filter={filter}
-            searchQuery={searchQuery}
-            onEdit={openEditForm}
-            onDelete={handleDeleteTask}
-            onStatusChange={handleStatusChange}
-            onAddTask={openCreateForm}
-          />
+          <>
+            <TaskList
+              tasks={tasks}
+              filter={filter}
+              sortBy={sortBy}
+              searchQuery={searchQuery}
+              onEdit={openEditForm}
+              onDelete={handleDeleteTask}
+              onStatusChange={handleStatusChange}
+              onAddTask={openCreateForm}
+              updatingTaskId={updatingTaskId}
+              deletingTaskId={deletingTaskId}
+            />
+
+            {hasMore && (
+              <div className="load-more-container">
+                <button
+                  type="button"
+                  className="load-more-button"
+                  onClick={loadMoreTasks}
+                  disabled={isLoadingMore}
+                >
+                  {isLoadingMore
+                    ? "Loading more..."
+                    : "Load More Tasks"}
+                </button>
+
+                <p className="pagination-info">
+                  Showing {tasks.length} of {pagination.totalTasks} tasks
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
