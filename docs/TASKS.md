@@ -9,9 +9,9 @@
 - [x] Create DESIGN.md
 - [x] Create RULES.md
 - [x] Create TESTING.md
-- [ ] Create SECURITY.md
-- [ ] Create DECISIONS.md
-- [ ] Create MEMORY.md
+- [x] Create SECURITY.md
+- [x] Create DECISIONS.md
+- [x] Create MEMORY.md
 
 ### Project Setup
 
@@ -30,20 +30,20 @@
 
 ## Server Setup
 
-- [ ] Install Express
-- [ ] Create server entry point
-- [ ] Create Express application
-- [ ] Create basic health-check endpoint
-- [ ] Configure environment variables
-- [ ] Configure development scripts
+- [x] Install Express
+- [x] Create server entry point
+- [x] Create Express application
+- [x] Create basic health-check endpoint
+- [x] Configure environment variables
+- [x] Configure development scripts
 
 ## Database Setup
 
-- [ ] Install Mongoose
-- [ ] Create MongoDB configuration
-- [ ] Connect application to MongoDB
-- [ ] Handle database connection errors
-- [ ] Test database connection
+- [x] Install Mongoose
+- [x] Create MongoDB configuration
+- [x] Connect application to MongoDB
+- [x] Handle database connection errors
+- [x] Test database connection
 
 
 ---
@@ -52,41 +52,41 @@
 
 ## Task Model
 
-- [ ] Create Task schema
-- [ ] Define title field
-- [ ] Define description field
-- [ ] Define priority field
-- [ ] Define status field
-- [ ] Define dueDate field
-- [ ] Configure timestamps
+- [x] Create Task schema
+- [x] Define title field
+- [x] Define description field
+- [x] Define priority field
+- [x] Define status field
+- [x] Define dueDate field
+- [x] Configure timestamps
 
 ## Task API
 
-- [ ] Create task routes
-- [ ] Create task controller
-- [ ] Create task
-- [ ] Get all tasks
-- [ ] Get single task
-- [ ] Update task
-- [ ] Delete task
-- [ ] Update task status
+- [x] Create task routes
+- [x] Create task controller
+- [x] Create task
+- [x] Get all tasks
+- [x] Get single task
+- [x] Update task
+- [x] Delete task
+- [x] Update task status
 
 ## Validation
 
-- [ ] Validate title
-- [ ] Validate description
-- [ ] Validate priority
-- [ ] Validate status
-- [ ] Validate due date
-- [ ] Validate MongoDB ID
+- [x] Validate title
+- [x] Validate description
+- [x] Validate priority
+- [x] Validate status
+- [x] Validate due date
+- [x] Validate MongoDB ID
 
 ## Error Handling
 
-- [ ] Create centralized error middleware
-- [ ] Handle invalid request data
-- [ ] Handle task not found
-- [ ] Handle invalid task ID
-- [ ] Handle database errors
+- [x] Create centralized error middleware
+- [x] Handle invalid request data
+- [x] Handle task not found
+- [x] Handle invalid task ID
+- [x] Handle database errors
 
 
 ---
@@ -172,12 +172,12 @@
 
 # Phase 7 — Task Features
 
-- [ ] Add task search
-- [ ] Add priority filtering
-- [ ] Add status filtering
-- [ ] Add due-date filtering
-- [ ] Add sorting
-- [ ] Add pagination
+- [x] Add task search
+- [x] Add priority filtering
+- [x] Add status filtering
+- [x] Add due-date filtering
+- [x] Add sorting
+- [x] Add pagination
 
 
 ---
@@ -225,11 +225,11 @@
 
 # Phase 11 — Testing
 
-- [ ] Test task creation
-- [ ] Test task retrieval
-- [ ] Test task update
-- [ ] Test task deletion
-- [ ] Test validation errors
+- [x] Test task creation
+- [x] Test task retrieval
+- [x] Test task update
+- [x] Test task deletion
+- [x] Test validation errors
 - [ ] Test authentication
 - [ ] Test authorization
 - [ ] Test frontend states

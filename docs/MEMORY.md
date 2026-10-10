@@ -184,3 +184,35 @@ Example:
 npm install
 npm run dev
 npm test
+
+ 9. Backend Validation, Error Handling & Testing
+
+Completed
+
+* Implemented centralized error-handling middleware.
+* Added request validation for task data, query parameters, and route parameters using Zod.
+* Added handling for invalid MongoDB ObjectIds, missing tasks, validation errors, and malformed JSON.
+* Added automated API tests using Jest and Supertest.
+* Used MongoDB Memory Server for isolated test database operations.
+* Verified that all 8 automated tests pass across 2 test suites.
+
+Important Learnings
+
+* Centralized error handling avoids duplicating error responses in controllers.
+* Zod validates incoming request data before it reaches business logic.
+* Supertest allows API endpoints to be tested without manually using Postman.
+* MongoDB Memory Server provides an isolated database for automated tests.
+* Expected client errors, such as 400 and 404, should not produce unnecessary server-error logs.
+* Unexpected server errors should still be logged for debugging.
+
+Current Test Status
+
+* Test suites passed: 2
+* Tests passed: 8
+* Test failures: 0
+
+Next Steps
+
+* Review backend configuration and security.
+* Update the project task checklist.
+* Begin the React dashboard and integrate it with the TaskFlow API.

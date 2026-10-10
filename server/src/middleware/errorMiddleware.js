@@ -1,5 +1,9 @@
 const errorMiddleware = (err, req, res, next) => {
-  console.error("ACTUAL API ERROR:", err);
+  
+  if(err.statusCode >= 500 || !err.statusCode){
+    console.error("SERVER ERROR:", err);
+  }
+
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal Server Error"
 
