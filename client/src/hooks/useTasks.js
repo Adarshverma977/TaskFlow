@@ -7,6 +7,12 @@ import {
   deleteTask,
 } from "../services/taskService";
 
+import {
+  saveTasksCache,
+  getTasksCache,
+  clearAllTasksCache,
+} from "../utils/taskCache";
+
 const PAGE_SIZE = 10;
 
 function getSortOptions(sortBy) {
@@ -41,11 +47,7 @@ function updateURLParams(updates) {
   window.history.replaceState({}, "", url);
 }
 
-function useTasks({
-  status = "all",
-  search = "",
-  sortBy = "newest",
-} = {}) {
+function useTasks({ status = "all", search = "", sortBy = "newest" } = {}) {
   const [tasks, setTasks] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -58,9 +60,17 @@ function useTasks({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const isFirstFetch = useRef(true);
   const requestId = useRef(0);
+  const isLoadingMoreRef = useRef(false);
+
+  const filters = {
+    status,
+    search: search.trim(),
+    sortBy,
+  };
 
   const fetchTasks = useCallback(
     async (requestedPage = 1) => {
@@ -76,7 +86,7 @@ function useTasks({
           page: 1,
           limit: PAGE_SIZE,
           status,
-          search,
+          search: search.trim(),
           sortBy: sortOptions.sortBy,
           order: sortOptions.order,
         });
@@ -96,7 +106,7 @@ function useTasks({
             page,
             limit: PAGE_SIZE,
             status,
-            search,
+            search: search.trim(),
             sortBy: sortOptions.sortBy,
             order: sortOptions.order,
           });
@@ -107,11 +117,19 @@ function useTasks({
           latestPagination = result.pagination;
         }
 
-        setTasks(allTasks);
-        setPagination({
-          ...latestPagination,
-          page: targetPage,
-        });
+        const loadedData = {
+          tasks: allTasks,
+          pagination: {
+            ...latestPagination,
+            page: targetPage,
+          },
+        };
+
+        setTasks(loadedData.tasks);
+        setPagination(loadedData.pagination);
+        setHasLoadedOnce(true);
+
+        saveTasksCache(loadedData, filters);
 
         updateURLParams({
           page: targetPage,
@@ -120,7 +138,19 @@ function useTasks({
           sortBy,
         });
       } catch (err) {
-        if (currentRequestId === requestId.current) {
+        if (currentRequestId !== requestId.current) return;
+
+        const cachedData = getTasksCache(filters);
+
+        if (cachedData) {
+          setTasks(cachedData.tasks);
+          setPagination(cachedData.pagination);
+          setHasLoadedOnce(true);
+
+          setError(
+            "You're viewing saved tasks. The server is unavailable, so this data may be outdated.",
+          );
+        } else {
           setError(err.message || "Unable to load tasks.");
         }
       } finally {
@@ -154,11 +184,13 @@ function useTasks({
   const loadMoreTasks = async () => {
     if (
       isLoading ||
-      isLoadingMore ||
+      isLoadingMoreRef.current ||
       pagination.page >= pagination.totalPages
     ) {
       return;
     }
+
+    isLoadingMoreRef.current = true;
 
     const nextPage = pagination.page + 1;
     const currentRequestId = requestId.current;
@@ -172,26 +204,37 @@ function useTasks({
         page: nextPage,
         limit: PAGE_SIZE,
         status,
-        search,
+        search: search.trim(),
         sortBy: sortOptions.sortBy,
         order: sortOptions.order,
       });
 
       if (currentRequestId !== requestId.current) return;
 
-      setTasks((currentTasks) => {
-        const existingIds = new Set(
-          currentTasks.map((task) => String(task.id)),
-        );
+      const updatedTasks = [
+        ...tasks,
+        ...result.tasks.filter(
+          (newTask) =>
+            !tasks.some(
+              (existingTask) =>
+                String(existingTask.id ?? existingTask._id) ===
+                String(newTask.id ?? newTask._id),
+            ),
+        ),
+      ];
 
-        const newTasks = result.tasks.filter(
-          (task) => !existingIds.has(String(task.id)),
-        );
+      const updatedPagination = result.pagination;
 
-        return [...currentTasks, ...newTasks];
-      });
+      setTasks(updatedTasks);
+      setPagination(updatedPagination);
 
-      setPagination(result.pagination);
+      saveTasksCache(
+        {
+          tasks: updatedTasks,
+          pagination: updatedPagination,
+        },
+        filters,
+      );
 
       updateURLParams({
         page: nextPage,
@@ -204,6 +247,8 @@ function useTasks({
         setError(err.message || "Unable to load more tasks.");
       }
     } finally {
+      isLoadingMoreRef.current = false;
+
       if (currentRequestId === requestId.current) {
         setIsLoadingMore(false);
       }
@@ -216,7 +261,10 @@ function useTasks({
 
     try {
       const newTask = await createTask(taskData);
+
+      clearAllTasksCache();
       await fetchTasks(1);
+
       return newTask;
     } catch (err) {
       setError(err.message || "Unable to create task.");
@@ -233,12 +281,28 @@ function useTasks({
     try {
       const updatedTask = await updateTask(id, taskData);
 
-      setTasks((currentTasks) =>
-        currentTasks.map((task) =>
-          String(task.id) === String(id)
-            ? { ...updatedTask, id: updatedTask._id ?? updatedTask.id }
-            : task,
-        ),
+      // Clear every filtered cache because status, search,
+      // sorting, or other task fields may have changed.
+      clearAllTasksCache();
+
+      const nextTasks = tasks.map((task) =>
+        String(task.id ?? task._id) === String(id)
+          ? {
+              ...updatedTask,
+              id: updatedTask._id ?? updatedTask.id,
+            }
+          : task,
+      );
+
+      setTasks(nextTasks);
+
+      // Rebuild the current cache with the updated task list.
+      saveTasksCache(
+        {
+          tasks: nextTasks,
+          pagination,
+        },
+        filters,
       );
 
       return updatedTask;
@@ -255,6 +319,8 @@ function useTasks({
 
     try {
       await deleteTask(id);
+
+      clearAllTasksCache();
       await fetchTasks(1);
     } catch (err) {
       setError(err.message || "Unable to delete task.");
@@ -276,6 +342,7 @@ function useTasks({
     isLoadingMore,
     isSubmitting,
     error,
+    hasLoadedOnce,
     fetchTasks,
     loadMoreTasks,
     addTask,

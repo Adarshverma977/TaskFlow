@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 import Header from "../components/Header";
@@ -52,6 +53,7 @@ function Dashboard({ filter }) {
     isLoadingMore,
     isSubmitting,
     error,
+    hasLoadedOnce,
     addTask,
     fetchTasks,
     loadMoreTasks,
@@ -157,13 +159,13 @@ function Dashboard({ filter }) {
       />
 
       <div className="dashboard-content">
-        {error && (
+        {/* Show the error and retry action */}
+        {error && hasLoadedOnce && (
           <div className="error-banner" role="alert">
             <span>{error}</span>
-
             <button
               type="button"
-              onClick={fetchTasks}
+              onClick={() => fetchTasks(1)}
               disabled={isLoading}
             >
               {isLoading ? "Retrying..." : "Retry"}
@@ -171,19 +173,57 @@ function Dashboard({ filter }) {
           </div>
         )}
 
-        <StatsCards tasks={tasks} />
+        {/* Don't show misleading zero stats before the first successful load */}
+        {hasLoadedOnce && <StatsCards tasks={tasks} />}
 
-        {isLoading ? (
-          <div className="loading-state" role="status">
+        {/* Initial loading */}
+        {isLoading && !hasLoadedOnce && (
+          <div
+            className="loading-state"
+            role="status"
+            aria-live="polite"
+          >
             Loading your tasks...
           </div>
-        ) : (
+        )}
+
+        {/* Initial request failed */}
+        {!isLoading && error && !hasLoadedOnce && (
+          <div className="initial-error-state" role="alert">
+            <h3>Unable to load tasks</h3>
+            <p>
+              We couldn't connect to the server. Check that the backend
+              is running, then try again.
+            </p>
+
+            <button
+              type="button"
+              className="load-more-button"
+              onClick={() => fetchTasks(1)}
+              disabled={isLoading}
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {/* Show tasks after at least one successful fetch */}
+        {hasLoadedOnce && (
           <>
+            {isLoading && (
+              <div
+                className="loading-indicator"
+                role="status"
+                aria-live="polite"
+              >
+                Updating tasks...
+              </div>
+            )}
+
             <TaskList
               tasks={tasks}
               filter={filter}
-              sortBy={sortBy}
-              searchQuery={searchQuery}
+              searchQuery={debouncedSearch}
               onEdit={openEditForm}
               onDelete={handleDeleteTask}
               onStatusChange={handleStatusChange}
@@ -198,7 +238,7 @@ function Dashboard({ filter }) {
                   type="button"
                   className="load-more-button"
                   onClick={loadMoreTasks}
-                  disabled={isLoadingMore}
+                  disabled={isLoading || isLoadingMore}
                 >
                   {isLoadingMore
                     ? "Loading more..."
@@ -212,39 +252,40 @@ function Dashboard({ filter }) {
             )}
           </>
         )}
-      </div>
 
-      {isFormOpen && (
-        <div
-          className="modal-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              closeForm();
-            }
-          }}
-        >
+        {/* Form modal */}
+        {isFormOpen && (
           <div
-            className="task-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label={editingTask ? "Edit task" : "Create task"}
+            className="modal-backdrop"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                closeForm();
+              }
+            }}
           >
-            <TaskForm
-              key={editingTask?.id || "new-task"}
-              task={editingTask}
-              onSubmit={handleFormSubmit}
-              onCancel={closeForm}
-              isSubmitting={isSubmitting}
-            />
+            <div
+              className="task-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label={editingTask ? "Edit task" : "Create task"}
+            >
+              <TaskForm
+                key={editingTask?.id || "new-task"}
+                task={editingTask}
+                onSubmit={handleFormSubmit}
+                onCancel={closeForm}
+                isSubmitting={isSubmitting}
+              />
 
-            {formError && (
-              <p className="field-error modal-error" role="alert">
-                {formError}
-              </p>
-            )}
+              {formError && (
+                <p className="field-error modal-error" role="alert">
+                  {formError}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 }
