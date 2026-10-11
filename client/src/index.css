@@ -1,13 +1,130 @@
-/* *{
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  font-family: 'Nunito Sans', sans-serif;
+  color: #302c55;
+  background: #f1efff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --clay-bg: #f1efff;
+  --clay-surface: #ffffff;
+  --clay-surface-soft: #f8f6ff;
+  --clay-text: #302c55;
+  --clay-muted: #77769d;
+  --clay-primary: #7467f0;
+  --clay-primary-dark: #5e52d9;
+  --clay-border: #e5dfff;
+  --clay-lavender: #eae5ff;
+  --clay-peach: #fff0e4;
+  --clay-mint: #e0f8ed;
+  --clay-pink: #ffe8ed;
+  --clay-shadow: 0 10px 30px rgba(72, 58, 145, 0.07);
+  --clay-shadow-small: 0 4px 14px rgba(72, 58, 145, 0.08);
+  --clay-shadow-hover: 0 12px 28px rgba(72, 58, 145, 0.12);
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html{
+html {
+  min-width: 320px;
+  min-height: 100%;
   scroll-behavior: smooth;
 }
 
-body{
+body {
   margin: 0;
-  min-height: 100vh;
   min-width: 320px;
-} */
+  min-height: 100vh;
+  font-family: 'Nunito Sans', sans-serif;
+  color: var(--clay-text);
+  background:
+    radial-gradient(ellipse at 0% 0%, #e5e0ff 0%, transparent 38%),
+    radial-gradient(ellipse at 100% 100%, #ffede4 0%, transparent 34%),
+    var(--clay-bg);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+select {
+  cursor: pointer;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+input,
+textarea,
+select {
+  color: inherit;
+}
+
+input,
+textarea,
+select,
+button {
+  min-width: 0;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+::selection {
+  color: #302c55;
+  background: #dcd5ff;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(116, 103, 240, 0.4);
+  outline-offset: 3px;
+}
+
+/* Keep accessible labels available to screen readers only. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
