@@ -1,4 +1,10 @@
-function Sidebar({ activeFilter, onFilterChange }) {
+
+function Sidebar({
+  activeFilter,
+  onFilterChange,
+  theme,
+  onThemeToggle,
+}) {
   const navItems = [
     { id: "all", icon: "▦", label: "All Tasks" },
     { id: "pending", icon: "◷", label: "Pending" },
@@ -34,12 +40,35 @@ function Sidebar({ activeFilter, onFilterChange }) {
         ))}
       </nav>
 
-      <div className="sidebar-footer">
-        <div className="user-avatar">R</div>
+      <div className="sidebar-bottom">
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={onThemeToggle}
+          aria-label={`Switch to ${theme === "light" ? "dark" : "light"
+            } mode`}
+          aria-pressed={theme === "dark"}
+        >
+          <span className="theme-toggle-icon" aria-hidden="true">
+            {theme === "light" ? "☾" : "☀"}
+          </span>
 
-        <div className="user-info">
-          <strong>My Workspace</strong>
-          <span>Personal account</span>
+          <span>
+            {theme === "light" ? "Dark Mode" : "Light Mode"}
+          </span>
+
+          <span className="theme-toggle-indicator" aria-hidden="true">
+            {theme === "light" ? "🌙" : "☀️"}
+          </span>
+        </button>
+
+        <div className="sidebar-footer">
+          <div className="user-avatar">R</div>
+
+          <div className="user-info">
+            <strong>My Workspace</strong>
+            <span>Personal account</span>
+          </div>
         </div>
       </div>
     </aside>
