@@ -41,7 +41,7 @@ function Header({
             onChange={(event) => onSortChange(event.target.value)}
           >
             <option value="newest">Newest first</option>
-            <option value="dueDate">Due date</option>
+            <option value="due-date">Due date</option>
             <option value="priority">Priority: High to Low</option>
           </select>
         </label>

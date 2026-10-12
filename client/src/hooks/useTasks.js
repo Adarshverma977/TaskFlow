@@ -20,7 +20,7 @@ function getSortOptions(sortBy) {
     newest: { sortBy: "createdAt", order: "desc" },
     oldest: { sortBy: "createdAt", order: "asc" },
     "due-date": { sortBy: "dueDate", order: "asc" },
-    priority: { sortBy: "priority", order: "desc" },
+    priority: { sortBy: "priority", order: "asc" },
   };
 
   return sortOptions[sortBy] || sortOptions.newest;

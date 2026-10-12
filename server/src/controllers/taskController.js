@@ -20,6 +20,7 @@ const createTask = asyncHandler(async (req, res) => {
   )
 });
 // GET ALL TASKS
+
 const getTasks = asyncHandler(async (req, res) => {
   const {
     page,
@@ -30,70 +31,110 @@ const getTasks = asyncHandler(async (req, res) => {
     order,
     search,
     dueFrom,
-    dueTo
+    dueTo,
   } = res.locals.validateQuery;
 
   const filter = {};
 
-  if(status){
+  if (status) {
     filter.status = status;
   }
 
-  if(priority){
+  if (priority) {
     filter.priority = priority;
   }
 
-  if(search){
+  if (search) {
     filter.title = {
       $regex: search,
-      $options: "i"
+      $options: "i",
     };
   }
 
-  if(dueFrom || dueTo){
+  if (dueFrom || dueTo) {
     filter.dueDate = {};
 
-    if(dueFrom){
+    if (dueFrom) {
       filter.dueDate.$gte = new Date(`${dueFrom}T00:00:00.000Z`);
     }
 
-    if(dueTo){
-      filter.dueDate.$lte = new Date(`${dueTo}T23:59:59.999Z`)
+    if (dueTo) {
+      filter.dueDate.$lte = new Date(`${dueTo}T23:59:59.999Z`);
     }
   }
 
   const skip = (page - 1) * limit;
-
   const sortOrder = order === "asc" ? 1 : -1;
 
-  const sort = {
-    [sortBy]: sortOrder,
-    _id: sortOrder
-  };
+  let tasksQuery;
+
+  if (sortBy === "priority") {
+    const priorityRank = {
+      high: 1,
+      medium: 2,
+      low: 3,
+    };
+
+    tasksQuery = Task.aggregate([
+      { $match: filter },
+      {
+        $addFields: {
+          priorityRank: {
+            $switch: {
+              branches: [
+                {
+                  case: { $eq: ["$priority", "high"] },
+                  then: 1,
+                },
+                {
+                  case: { $eq: ["$priority", "medium"] },
+                  then: 2,
+                },
+                {
+                  case: { $eq: ["$priority", "low"] },
+                  then: 3,
+                },
+              ],
+              default: 4,
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          priorityRank: sortOrder,
+          _id: sortOrder,
+        },
+      },
+      { $skip: skip },
+      { $limit: limit },
+      { $unset: "priorityRank" },
+    ]);
+  } else {
+    tasksQuery = Task.find(filter)
+      .sort({
+        [sortBy]: sortOrder,
+        _id: sortOrder,
+      })
+      .skip(skip)
+      .limit(limit);
+  }
 
   const [tasks, totalTasks] = await Promise.all([
-    Task.find(filter)
-    .sort(sort)
-    .skip(skip)
-    .limit(limit),
-
-    Task.countDocuments(filter)
+    tasksQuery,
+    Task.countDocuments(filter),
   ]);
-  return sendResponse(
-    res,
-    200,
-    "Task Fetched successfully",
-    tasks,
-    {
-      pagination: {
-        page,
-        limit,
-        totalTasks,
-        totalPages: Math.ceil(totalTasks / limit)
-      }
-    }
-  );
+
+  return sendResponse(res, 200, "Task Fetched successfully", tasks, {
+    pagination: {
+      page,
+      limit,
+      totalTasks,
+      totalPages: Math.ceil(totalTasks / limit),
+    },
+  });
 });
+
 // GET SINGLE TASK
 const getTaskById = asyncHandler(async (req, res) => {
   const task = await Task.findById(req.params.id);
