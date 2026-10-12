@@ -1821,3 +1821,125 @@
 :root[data-theme="dark"] .modal-backdrop {
   background: rgba(8, 7, 15, 0.72);
 }
+
+/* Delete Confirmation Modal */
+.delete-modal-backdrop {
+  z-index: 1100;
+  background: rgba(12, 10, 24, 0.68);
+}
+
+.delete-confirmation-modal {
+  max-width: 460px;
+  padding: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  border-radius: 24px;
+  background: linear-gradient(145deg, #29243d, #211d32);
+  color: #f5f3ff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+}
+
+.delete-modal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 15px;
+  background: rgba(239, 68, 68, 0.13);
+  color: #f87171;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.delete-confirmation-modal h2 {
+  margin: 0 0 12px;
+  color: #f5f3ff;
+  font-size: 23px;
+  line-height: 1.3;
+}
+
+.delete-confirmation-modal p {
+  margin: 0;
+  color: #c4bfd8;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.delete-confirmation-modal strong {
+  color: #ffffff;
+  overflow-wrap: anywhere;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.delete-modal-actions button {
+  min-height: 43px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.delete-cancel-button {
+  border-color: rgba(196, 191, 216, 0.2) !important;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e4e0f2;
+}
+
+.delete-cancel-button:hover:not(:disabled) {
+  border-color: rgba(196, 191, 216, 0.4) !important;
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.delete-confirm-button {
+  background: #dc4545;
+  color: #ffffff;
+}
+
+.delete-confirm-button:hover:not(:disabled) {
+  background: #ef4444;
+  transform: translateY(-1px);
+}
+
+.delete-modal-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 480px) {
+  .delete-confirmation-modal {
+    padding: 23px;
+    border-radius: 20px;
+  }
+
+  .delete-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .delete-modal-actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .delete-modal-actions button {
+    transition: none;
+  }
+}

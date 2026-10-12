@@ -34,6 +34,7 @@ function Dashboard({ filter }) {
   const [formError, setFormError] = useState("");
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
   const [deletingTaskId, setDeletingTaskId] = useState(null);
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
   // 3. Debounce search input
   useEffect(() => {
@@ -115,23 +116,24 @@ function Dashboard({ filter }) {
   }
 
   // 10. Delete task
-  async function handleDeleteTask(id) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this task?"
-    );
 
-    if (!confirmed) return;
+  async function handleDeleteTask() {
+    if (!taskToDelete) return;
+
+    const id = taskToDelete.id;
 
     setDeletingTaskId(id);
 
     try {
       await removeTask(id);
+      setTaskToDelete(null);
     } catch {
       // The hook stores the API error for display.
     } finally {
       setDeletingTaskId(null);
     }
   }
+
 
   // 11. Change task status
   async function handleStatusChange(id, status) {
@@ -225,7 +227,13 @@ function Dashboard({ filter }) {
               filter={filter}
               searchQuery={debouncedSearch}
               onEdit={openEditForm}
-              onDelete={handleDeleteTask}
+              onDelete={(id) => {
+                const task = tasks.find(
+                  (task) => task.id === id || task._id === id
+                );
+
+                if (task) setTaskToDelete(task);
+              }}
               onStatusChange={handleStatusChange}
               onAddTask={openCreateForm}
               updatingTaskId={updatingTaskId}
@@ -285,6 +293,61 @@ function Dashboard({ filter }) {
             </div>
           </div>
         )}
+        {/* Delete confirmation modal */}
+        {
+          taskToDelete && (
+            <div
+              className="modal-backdrop delete-modal-backdrop"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) {
+                  setTaskToDelete(null);
+                }
+              }}
+            >
+              <div
+                className="task-modal delete-confirmation-modal"
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="delete-modal-title"
+                aria-describedby="delete-modal-description"
+              >
+                <div className="delete-modal-icon" aria-hidden="true">
+                  !
+                </div>
+
+                <h2 id="delete-modal-title">Delete this task?</h2>
+
+                <p id="delete-modal-description">
+                  Are you sure you want to delete{" "}
+                  <strong>{taskToDelete.title}</strong>?
+                  This action cannot be undone.
+                </p>
+
+                <div className="delete-modal-actions">
+                  <button
+                    type="button"
+                    className="delete-cancel-button"
+                    onClick={() => setTaskToDelete(null)}
+                    disabled={deletingTaskId === taskToDelete.id}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    className="delete-confirm-button"
+                    onClick={handleDeleteTask}
+                    disabled={deletingTaskId === taskToDelete.id}
+                  >
+                    {deletingTaskId === taskToDelete.id
+                      ? "Deleting..."
+                      : "Delete Task"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        }
       </div>
     </section>
   );
