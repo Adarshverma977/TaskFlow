@@ -8,7 +8,14 @@ const errorMiddleware = require("./middleware/errorMiddleware");
 
 const app = express();
 
-app.use(cors({ origin: ["http://localhost:5173", "https://taskflow-dashboard-app.vercel.app,"] }))
+app.use(cors({ 
+  origin: [
+    "http://localhost:5173",
+    "https://taskflow-dashboard-app.vercel.app,",
+    "https://taskflow-app.vercel.app"
+  ],
+ })
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {
