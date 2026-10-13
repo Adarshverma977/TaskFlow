@@ -11,7 +11,7 @@ const app = express();
 app.use(cors({ 
   origin: [
     "http://localhost:5173",
-    "https://taskflow-dashboard-app.vercel.app,",
+    "https://taskflow-dashboard-app.vercel.app",,
     "https://taskflow-app.vercel.app"
   ],
  })
